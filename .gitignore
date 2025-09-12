@@ -1,0 +1,24 @@
+# Docker volumes and data
+docker-compose.override.yml
+.env.local
+
+# Odoo files
+odoo.conf
+filestore/
+sessions/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
