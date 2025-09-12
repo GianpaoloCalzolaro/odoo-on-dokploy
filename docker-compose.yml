@@ -32,7 +32,6 @@ services:
     volumes:
       - odoo-web-data:/var/lib/odoo
       - ./addons:/mnt/extra-addons
-      - ./odoo.conf:/etc/odoo/odoo.conf   # opzionale ma consigliato
     ports:
       - "8069:8069"
       - "8072:8072"   # bus longpolling
@@ -40,3 +39,4 @@ services:
 volumes:
   odoo-db-data:
   odoo-web-data:
+
