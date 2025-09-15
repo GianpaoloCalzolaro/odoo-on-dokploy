@@ -1,3 +1,24 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:${POSTGRES_VERSION:-16}
+    container_name: odoo-db
+    restart: always
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+      - POSTGRES_USER=${POSTGRES_USER:-odoo}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-odoo} -d ${POSTGRES_DB:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dokploy-network
+
   web:
     image: odoo:${ODOO_VERSION:-18.0}
     container_name: odoo-web
@@ -14,9 +35,8 @@
       odoo
       --proxy-mode
       --gevent-port=8072
-      --db-filter=.*            # mostra tutti i db disponibili
+      --db-filter=.*
       --admin-passwd=${ADMIN_PASSWD:-change_me}
-      # (IMPORTANTE) non mettere "-d <nome_db>" qui
     volumes:
       - odoo-web-data:/var/lib/odoo
       - ./addons:/mnt/extra-addons
@@ -45,6 +65,14 @@
       - traefik.http.services.odoo-ws-svc.loadbalancer.server.port=8072
     networks:
       - dokploy-network
+
+volumes:
+  odoo-db-data:
+  odoo-web-data:
+
+networks:
+  dokploy-network:
+    external: true
 
 
 
