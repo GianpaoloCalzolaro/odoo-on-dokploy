@@ -1,24 +1,3 @@
-version: '3.8'
-
-services:
-  db:
-    image: postgres:${POSTGRES_VERSION:-16}
-    container_name: odoo-db
-    restart: always
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB:-postgres}
-      - POSTGRES_USER=${POSTGRES_USER:-odoo}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
-    volumes:
-      - odoo-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-odoo} -d ${POSTGRES_DB:-postgres}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - dokploy-network
-
   web:
     image: odoo:${ODOO_VERSION:-18.0}
     container_name: odoo-web
@@ -27,16 +6,17 @@ services:
       db:
         condition: service_healthy
     environment:
-      # alias supportati dall'immagine odoo per connettersi a postgres
       - HOST=db
       - USER=${POSTGRES_USER:-odoo}
       - PASSWORD=${POSTGRES_PASSWORD:-odoo}
-    # suggerito in produzione: filtri db e proxy-mode (odoo 18)
+      - ADMIN_PASSWD=${ADMIN_PASSWD:-change_me}
     command: >
       odoo
-      --db-filter=^%h$
       --proxy-mode
       --gevent-port=8072
+      --db-filter=.*            # mostra tutti i db disponibili
+      --admin-passwd=${ADMIN_PASSWD:-change_me}
+      # (IMPORTANTE) non mettere "-d <nome_db>" qui
     volumes:
       - odoo-web-data:/var/lib/odoo
       - ./addons:/mnt/extra-addons
@@ -47,20 +27,17 @@ services:
       - traefik.enable=true
       - traefik.docker.network=dokploy-network
 
-      # http -> https
       - traefik.http.routers.odoo.rule=Host(`odoomodule-test-ov7mcd-a58ee3-167-99-99-29.traefik.me`)
       - traefik.http.routers.odoo.entrypoints=web
-      - traefik.http.routers.odoo.middlewares=odoo-redirect-https
       - traefik.http.middlewares.odoo-redirect-https.redirectscheme.scheme=https
+      - traefik.http.routers.odoo.middlewares=odoo-redirect-https
 
-      # router https principale (porta 8069)
       - traefik.http.routers.odoo-secure.rule=Host(`odoomodule-test-ov7mcd-a58ee3-167-99-99-29.traefik.me`)
       - traefik.http.routers.odoo-secure.entrypoints=websecure
       - traefik.http.routers.odoo-secure.tls.certresolver=letsencrypt
       - traefik.http.routers.odoo-secure.service=odoo-svc
       - traefik.http.services.odoo-svc.loadbalancer.server.port=8069
 
-      # websocket/gevent (porta 8072) per notifiche, live chat, bus
       - traefik.http.routers.odoo-ws.rule=Host(`odoomodule-test-ov7mcd-a58ee3-167-99-99-29.traefik.me`) && PathPrefix(`/websocket`)
       - traefik.http.routers.odoo-ws.entrypoints=websecure
       - traefik.http.routers.odoo-ws.tls.certresolver=letsencrypt
@@ -69,13 +46,7 @@ services:
     networks:
       - dokploy-network
 
-volumes:
-  odoo-db-data:
-  odoo-web-data:
 
-networks:
-  dokploy-network:
-    external: true
 
 
 
