@@ -38,7 +38,7 @@ services:
       --db-filter=.*
     volumes:
       - odoo-web-data:/var/lib/odoo
-      - ./addons:/mnt/extra-addons
+      - ./addons:/mnt/addons
       - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
     ports:
       - "8069:8069"
