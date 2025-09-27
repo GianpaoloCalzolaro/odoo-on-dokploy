@@ -36,10 +36,10 @@ services:
       --proxy-mode
       --gevent-port=8072
       --db-filter=.*
-      --admin-passwd=${ADMIN_PASSWD:-change_me}
     volumes:
       - odoo-web-data:/var/lib/odoo
       - ./addons:/mnt/extra-addons
+      - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
     ports:
       - "8069:8069"
       - "8072:8072"
