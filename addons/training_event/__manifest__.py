@@ -1,0 +1,27 @@
+{
+    "name": "Gestione Eventi Formativi",
+    "version": "18.0.1.0.0",
+    "summary": "Gestione completa di eventi formativi multi-giorno",
+    "description": """Gestione completa di eventi formativi multi-giorno con moduli, sessioni, partecipanti, reportistica ed esportazioni.""",
+    "category": "Education",
+    "license": "LGPL-3",
+    "author": "Gian Paolo Calzolaro",
+    "website": "https://infologis.biz",
+    "depends": ["base", "mail", "web"],
+    "data": [
+        "security/training_event_security.xml",
+        "security/ir.model.access.csv",
+        "data/ir_sequence_data.xml",
+        "views/training_event_menu.xml",
+        "views/training_event_views.xml",
+        "views/training_module_views.xml",
+        "views/training_session_views.xml",
+        "views/training_participant_views.xml",
+        "wizard/training_event_clone_wizard_views.xml",
+        "report/training_event_report_templates.xml"
+    ],
+    "demo": ["demo/training_event_demo.xml"],
+    "application": True,
+    "installable": True,
+    "auto_install": False,
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="training_event_clone_wizard_form_view" model="ir.ui.view">
+        <field name="name">training.event.clone.wizard.form</field>
+        <field name="model">training.event.clone.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Clona Evento">
+                <group>
+                    <field name="event_id" invisible="1"/>
+                    <field name="new_name"/>
+                    <field name="new_date_start"/>
+                    <field name="new_date_end"/>
+                    <field name="new_duration_days" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_clone" type="object" string="Clona" class="btn-primary"/>
+                    <button string="Annulla" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

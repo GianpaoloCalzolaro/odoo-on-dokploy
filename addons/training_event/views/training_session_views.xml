@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="training_session_list_view" model="ir.ui.view">
+        <field name="name">training.session.list</field>
+        <field name="model">training.session</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'idea'" decoration-primary="state == 'designed'">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="module_id"/>
+                <field name="event_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="duration_hours"/>
+                <field name="trainer_ids" widget="many2many_tags"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="training_session_form_view" model="ir.ui.view">
+        <field name="name">training.session.form</field>
+        <field name="model">training.session</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar" clickable="True"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="module_id"/>
+                            <field name="event_id" readonly="1"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="duration_hours" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="trainer_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Contenuti">
+                            <field name="description"/>
+                        </page>
+                        <page string="Materiali">
+                            <group>
+                                <field name="materials"/>
+                            </group>
+                            <separator string="Allegati"/>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                        <page string="Note">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="training_session_search_view" model="ir.ui.view">
+        <field name="name">training.session.search</field>
+        <field name="model">training.session</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="module_id"/>
+                <field name="event_id"/>
+                <filter name="filter_idea" string="Ideate" domain="[('state', '=', 'idea')]"/>
+                <filter name="filter_designed" string="Progettate" domain="[('state', '=', 'designed')]"/>
+                <filter name="filter_closed" string="Chiuse" domain="[('state', '=', 'closed')]"/>
+                <filter name="filter_my_sessions" string="Mie Sessioni" domain="[('trainer_ids', 'in', [uid])]"/>
+                <filter name="filter_today" string="Oggi" domain="[('date_start', '&lt;=', context_today()), ('date_end', '&gt;=', context_today())]"/>
+                <group expand="0" string="Raggruppa per">
+                    <filter name="group_module" string="Modulo" context="{'group_by': 'module_id'}"/>
+                    <filter name="group_event" string="Evento" context="{'group_by': 'event_id'}"/>
+                    <filter name="group_state" string="Stato" context="{'group_by': 'state'}"/>
+                    <filter name="group_date_day" string="Giorno" context="{'group_by': 'date_start:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="training_session_calendar_view" model="ir.ui.view">
+        <field name="name">training.session.calendar</field>
+        <field name="model">training.session</field>
+        <field name="arch" type="xml">
+            <calendar string="Calendario Sessioni" date_start="date_start" date_stop="date_end" color="module_id"
+                      mode="week" quick_add="False"/>
+        </field>
+    </record>
+
+    <record id="training_session_act_window" model="ir.actions.act_window">
+        <field name="name">Tutte le Sessioni</field>
+        <field name="res_model">training.session</field>
+        <field name="view_mode">calendar,list,form</field>
+    </record>
+
+    <record id="training_session_trainer_act_window" model="ir.actions.act_window">
+        <field name="name">Mie Sessioni</field>
+        <field name="res_model">training.session</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="domain">[('trainer_ids', 'in', [uid])]</field>
+        <field name="context">{'search_default_filter_today': 1, 'default_trainer_ids': [(6, 0, [uid])]}</field>
+    </record>
+</odoo>

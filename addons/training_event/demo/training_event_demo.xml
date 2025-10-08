@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="demo_partner_trainer_1" model="res.partner">
+        <field name="name">Mario Rossi</field>
+        <field name="email">mario.rossi@example.com</field>
+        <field name="phone">+39 011 1234567</field>
+    </record>
+    <record id="demo_partner_trainer_2" model="res.partner">
+        <field name="name">Luca Bianchi</field>
+        <field name="email">luca.bianchi@example.com</field>
+        <field name="phone">+39 011 7654321</field>
+    </record>
+    <record id="demo_partner_student_1" model="res.partner">
+        <field name="name">Giulia Verdi</field>
+        <field name="email">giulia.verdi@example.com</field>
+    </record>
+    <record id="demo_partner_student_2" model="res.partner">
+        <field name="name">Chiara Neri</field>
+        <field name="email">chiara.neri@example.com</field>
+    </record>
+    <record id="demo_partner_student_3" model="res.partner">
+        <field name="name">Alessio Galli</field>
+        <field name="email">alessio.galli@example.com</field>
+    </record>
+
+    <record id="demo_user_trainer_1" model="res.users">
+        <field name="name">Mario Rossi</field>
+        <field name="login">trainer.mario</field>
+        <field name="email">mario.rossi@example.com</field>
+        <field name="partner_id" ref="training_event.demo_partner_trainer_1"/>
+        <field name="groups_id" eval="[(6, 0, [ref('base.group_user'), ref('training_event.group_training_trainer')]) ]"/>
+    </record>
+    <record id="demo_user_trainer_2" model="res.users">
+        <field name="name">Luca Bianchi</field>
+        <field name="login">trainer.luca</field>
+        <field name="email">luca.bianchi@example.com</field>
+        <field name="partner_id" ref="training_event.demo_partner_trainer_2"/>
+        <field name="groups_id" eval="[(6, 0, [ref('base.group_user'), ref('training_event.group_training_trainer')]) ]"/>
+    </record>
+
+    <record id="demo_participant_trainer_1" model="training.participant">
+        <field name="partner_id" ref="training_event.demo_partner_trainer_1"/>
+        <field name="role">trainer</field>
+        <field name="user_id" ref="training_event.demo_user_trainer_1"/>
+    </record>
+    <record id="demo_participant_trainer_2" model="training.participant">
+        <field name="partner_id" ref="training_event.demo_partner_trainer_2"/>
+        <field name="role">trainer</field>
+        <field name="user_id" ref="training_event.demo_user_trainer_2"/>
+    </record>
+    <record id="demo_participant_student_1" model="training.participant">
+        <field name="partner_id" ref="training_event.demo_partner_student_1"/>
+        <field name="role">student</field>
+    </record>
+    <record id="demo_participant_student_2" model="training.participant">
+        <field name="partner_id" ref="training_event.demo_partner_student_2"/>
+        <field name="role">student</field>
+    </record>
+    <record id="demo_participant_student_3" model="training.participant">
+        <field name="partner_id" ref="training_event.demo_partner_student_3"/>
+        <field name="role">student</field>
+    </record>
+
+    <record id="demo_event_python" model="training.event">
+        <field name="name">Corso Demo Python Base</field>
+        <field name="event_type">course</field>
+        <field name="date_start">2025-02-03</field>
+        <field name="date_end">2025-02-05</field>
+        <field name="state">programmed</field>
+        <field name="participant_ids" eval="[(6, 0, [ref('training_event.demo_participant_student_1'), ref('training_event.demo_participant_student_2'), ref('training_event.demo_participant_student_3')]) ]"/>
+    </record>
+    <record id="demo_module_python_intro" model="training.module">
+        <field name="name">Introduzione</field>
+        <field name="event_id" ref="training_event.demo_event_python"/>
+        <field name="sequence">10</field>
+        <field name="description">Fondamenti di Python e sintassi base.</field>
+    </record>
+    <record id="demo_module_python_advanced" model="training.module">
+        <field name="name">Strutture Dati</field>
+        <field name="event_id" ref="training_event.demo_event_python"/>
+        <field name="sequence">20</field>
+        <field name="description">Liste, dizionari e collezioni avanzate.</field>
+    </record>
+    <record id="demo_session_python_intro_morning" model="training.session">
+        <field name="name">Benvenuto e Setup</field>
+        <field name="module_id" ref="training_event.demo_module_python_intro"/>
+        <field name="date_start">2025-02-03 09:00:00</field>
+        <field name="date_end">2025-02-03 12:00:00</field>
+        <field name="trainer_ids" eval="[(6, 0, [ref('training_event.demo_user_trainer_1')]) ]"/>
+        <field name="state">designed</field>
+    </record>
+    <record id="demo_session_python_intro_afternoon" model="training.session">
+        <field name="name">Esercitazioni Sintassi</field>
+        <field name="module_id" ref="training_event.demo_module_python_intro"/>
+        <field name="date_start">2025-02-03 14:00:00</field>
+        <field name="date_end">2025-02-03 17:00:00</field>
+        <field name="trainer_ids" eval="[(6, 0, [ref('training_event.demo_user_trainer_2')]) ]"/>
+        <field name="state">designed</field>
+    </record>
+    <record id="demo_session_python_advanced_morning" model="training.session">
+        <field name="name">Liste e Tuple</field>
+        <field name="module_id" ref="training_event.demo_module_python_advanced"/>
+        <field name="date_start">2025-02-04 09:00:00</field>
+        <field name="date_end">2025-02-04 12:00:00</field>
+        <field name="trainer_ids" eval="[(6, 0, [ref('training_event.demo_user_trainer_1'), ref('training_event.demo_user_trainer_2')]) ]"/>
+        <field name="state">designed</field>
+    </record>
+    <record id="demo_session_python_advanced_afternoon" model="training.session">
+        <field name="name">Dizionari e Set</field>
+        <field name="module_id" ref="training_event.demo_module_python_advanced"/>
+        <field name="date_start">2025-02-04 14:00:00</field>
+        <field name="date_end">2025-02-04 17:00:00</field>
+        <field name="trainer_ids" eval="[(6, 0, [ref('training_event.demo_user_trainer_1')]) ]"/>
+        <field name="state">designed</field>
+    </record>
+
+    <record id="demo_event_agile" model="training.event">
+        <field name="name">Workshop Demo Agile Team</field>
+        <field name="event_type">workshop</field>
+        <field name="date_start">2024-11-18</field>
+        <field name="date_end">2024-11-19</field>
+        <field name="state">in_progress</field>
+        <field name="participant_ids" eval="[(6, 0, [ref('training_event.demo_participant_student_1'), ref('training_event.demo_participant_student_2')]) ]"/>
+    </record>
+    <record id="demo_module_agile_intro" model="training.module">
+        <field name="name">Framework Agile</field>
+        <field name="event_id" ref="training_event.demo_event_agile"/>
+        <field name="sequence">10</field>
+    </record>
+    <record id="demo_session_agile_intro" model="training.session">
+        <field name="name">Principi Scrum</field>
+        <field name="module_id" ref="training_event.demo_module_agile_intro"/>
+        <field name="date_start">2024-11-18 09:30:00</field>
+        <field name="date_end">2024-11-18 12:30:00</field>
+        <field name="trainer_ids" eval="[(6, 0, [ref('training_event.demo_user_trainer_2')]) ]"/>
+        <field name="state">in_progress</field>
+    </record>
+</odoo>

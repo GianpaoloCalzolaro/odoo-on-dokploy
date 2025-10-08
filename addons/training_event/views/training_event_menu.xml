@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="training_event_main_menu" name="Gestione Eventi Formativi" sequence="40"/>
+
+    <menuitem id="training_event_menu" name="Eventi" parent="training_event_main_menu"
+              action="training_event.training_event_act_window" sequence="10"/>
+
+    <menuitem id="training_module_menu" name="Moduli" parent="training_event_main_menu"
+              action="training_event.training_module_act_window" sequence="20"/>
+
+    <menuitem id="training_session_menu" name="Sessioni" parent="training_event_main_menu"
+              action="training_event.training_session_act_window" sequence="30"/>
+
+    <menuitem id="training_session_trainer_menu" name="Mie Sessioni" parent="training_event_main_menu"
+              action="training_event.training_session_trainer_act_window" sequence="40"
+              groups="training_event.group_training_trainer"/>
+
+    <menuitem id="training_participant_menu" name="Partecipanti" parent="training_event_main_menu"
+              action="training_event.training_participant_act_window" sequence="50"/>
+</odoo>

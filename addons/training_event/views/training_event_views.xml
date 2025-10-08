@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="training_event_list_view" model="ir.ui.view">
+        <field name="name">training.event.list</field>
+        <field name="model">training.event</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'draft'" decoration-primary="state == 'programmed'"
+                  decoration-success="state in ['designed', 'in_progress']" decoration-muted="state == 'closed'">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="event_type"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="duration_days"/>
+                <field name="session_count"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="training_event_form_view" model="ir.ui.view">
+        <field name="name">training.event.form</field>
+        <field name="model">training.event</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar" clickable="True"/>
+                    <button name="action_clone_event" string="Clona Evento" type="object" class="btn-primary"/>
+                    <button name="action_export_excel" string="Esporta Attività (Excel)" type="object"
+                            class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code" readonly="1"/>
+                            <field name="event_type"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="duration_days" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="session_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Moduli e Sessioni">
+                            <field name="module_ids" mode="list,form">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="session_count"/>
+                                </list>
+                                <form string="Modulo">
+                                    <group>
+                                        <field name="name"/>
+                                        <field name="sequence"/>
+                                        <field name="description"/>
+                                    </group>
+                                    <notebook>
+                                        <page string="Sessioni">
+                                            <field name="session_ids" mode="list,form">
+                                                <list editable="bottom">
+                                                    <field name="sequence" widget="handle"/>
+                                                    <field name="name"/>
+                                                    <field name="date_start"/>
+                                                    <field name="date_end"/>
+                                                    <field name="duration_hours"/>
+                                                    <field name="trainer_ids" widget="many2many_tags"/>
+                                                    <field name="state"/>
+                                                </list>
+                                                <form string="Sessione">
+                                                    <sheet>
+                                                        <group>
+                                                            <group>
+                                                                <field name="name"/>
+                                                                <field name="module_id"/>
+                                                                <field name="event_id" readonly="1"/>
+                                                                <field name="date_start"/>
+                                                                <field name="date_end"/>
+                                                                <field name="duration_hours" readonly="1"/>
+                                                            </group>
+                                                            <group>
+                                                                <field name="trainer_ids" widget="many2many_tags"/>
+                                                                <field name="state" widget="statusbar" clickable="True"/>
+                                                            </group>
+                                                        </group>
+                                                        <notebook>
+                                                            <page string="Contenuti">
+                                                                <field name="description"/>
+                                                            </page>
+                                                            <page string="Materiali">
+                                                                <group>
+                                                                    <field name="materials"/>
+                                                                </group>
+                                                                <separator string="Allegati"/>
+                                                                <field name="attachment_ids" widget="many2many_binary"/>
+                                                            </page>
+                                                            <page string="Note">
+                                                                <field name="notes"/>
+                                                            </page>
+                                                        </notebook>
+                                                    </sheet>
+                                                </form>
+                                            </field>
+                                        </page>
+                                        <page string="Note">
+                                            <field name="notes"/>
+                                        </page>
+                                    </notebook>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Partecipanti">
+                            <field name="participant_ids" widget="many2many_tags">
+                                <list string="Partecipanti">
+                                    <field name="name"/>
+                                    <field name="email"/>
+                                    <field name="phone"/>
+                                    <field name="role"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Note">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="training_event_search_view" model="ir.ui.view">
+        <field name="name">training.event.search</field>
+        <field name="model">training.event</field>
+        <field name="arch" type="xml">
+            <search string="Ricerca Eventi">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="event_type"/>
+                <filter name="filter_draft" string="Bozza" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_programmed" string="Programmato" domain="[('state', '=', 'programmed')]"/>
+                <filter name="filter_in_progress" string="In Corso" domain="[('state', '=', 'in_progress')]"/>
+                <filter name="filter_closed" string="Chiuso" domain="[('state', '=', 'closed')]"/>
+                <filter name="filter_future" string="Futuri" domain="[('date_start', '&gt;=', context_today())]"/>
+                <filter name="filter_past" string="Passati" domain="[('date_end', '&lt;', context_today())]"/>
+                <group expand="0" string="Raggruppa per">
+                    <filter name="group_type" string="Tipologia" context="{'group_by': 'event_type'}"/>
+                    <filter name="group_state" string="Stato" context="{'group_by': 'state'}"/>
+                    <filter name="group_start_month" string="Mese Inizio" context="{'group_by': 'date_start:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="training_event_calendar_view" model="ir.ui.view">
+        <field name="name">training.event.calendar</field>
+        <field name="model">training.event</field>
+        <field name="arch" type="xml">
+            <calendar string="Calendario Eventi" date_start="date_start" date_stop="date_end" color="state" mode="month"
+                      quick_add="False"/>
+        </field>
+    </record>
+
+    <record id="training_event_act_window" model="ir.actions.act_window">
+        <field name="name">Eventi Formativi</field>
+        <field name="res_model">training.event</field>
+        <field name="view_mode">list,form,calendar</field>
+        <field name="context">{'search_default_filter_future': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crea il tuo primo evento formativo per iniziare la pianificazione.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_export_excel_activities" model="ir.actions.server">
+        <field name="name">Esporta Attività (Excel)</field>
+        <field name="model_id" ref="model_training_event"/>
+        <field name="binding_model_id" ref="model_training_event"/>
+        <field name="state">code</field>
+        <field name="code">action = records.action_export_excel()</field>
+    </record>
+</odoo>

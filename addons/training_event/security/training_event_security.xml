@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <category id="module_category_training" name="Eventi Formativi" sequence="50"/>
+
+        <record id="group_training_user" model="res.groups">
+            <field name="name">Training User</field>
+            <field name="category_id" ref="training_event.module_category_training"/>
+        </record>
+
+        <record id="group_training_trainer" model="res.groups">
+            <field name="name">Training Trainer</field>
+            <field name="category_id" ref="training_event.module_category_training"/>
+            <field name="implied_ids" eval="[(4, ref('training_event.group_training_user'))]"/>
+        </record>
+
+        <record id="group_training_admin" model="res.groups">
+            <field name="name">Training Administrator</field>
+            <field name="category_id" ref="training_event.module_category_training"/>
+            <field name="implied_ids" eval="[(4, ref('training_event.group_training_trainer'))]"/>
+        </record>
+    </data>
+
+    <record id="training_event_trainer_rule" model="ir.rule">
+        <field name="name">Training Event: Trainers see assigned events</field>
+        <field name="model_id" ref="model_training_event"/>
+        <field name="groups" eval="[(4, ref('training_event.group_training_trainer'))]"/>
+        <field name="domain_force">['|', ('module_ids.session_ids.trainer_ids', 'in', [user.id]), ('create_uid', '=', user.id)]</field>
+    </record>
+
+    <record id="training_session_trainer_rule" model="ir.rule">
+        <field name="name">Training Session: Trainers see assigned sessions</field>
+        <field name="model_id" ref="model_training_session"/>
+        <field name="groups" eval="[(4, ref('training_event.group_training_trainer'))]"/>
+        <field name="domain_force">['|', ('trainer_ids', 'in', [user.id]), ('create_uid', '=', user.id)]</field>
+    </record>
+
+    <record id="training_module_trainer_rule" model="ir.rule">
+        <field name="name">Training Module: Trainers see modules for assigned events</field>
+        <field name="model_id" ref="model_training_module"/>
+        <field name="groups" eval="[(4, ref('training_event.group_training_trainer'))]"/>
+        <field name="domain_force">['|', ('event_id.module_ids.session_ids.trainer_ids', 'in', [user.id]), ('create_uid', '=', user.id)]</field>
+    </record>
+
+    <record id="training_event_admin_rule" model="ir.rule">
+        <field name="name">Training Event: Admins see all</field>
+        <field name="model_id" ref="model_training_event"/>
+        <field name="groups" eval="[(4, ref('training_event.group_training_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="training_session_admin_rule" model="ir.rule">
+        <field name="name">Training Session: Admins see all</field>
+        <field name="model_id" ref="model_training_session"/>
+        <field name="groups" eval="[(4, ref('training_event.group_training_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="training_module_admin_rule" model="ir.rule">
+        <field name="name">Training Module: Admins see all</field>
+        <field name="model_id" ref="model_training_module"/>
+        <field name="groups" eval="[(4, ref('training_event.group_training_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+</odoo>

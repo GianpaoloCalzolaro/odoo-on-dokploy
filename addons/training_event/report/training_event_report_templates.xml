@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_event_program_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="event">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">Programma Formativo</h2>
+                        <table class="table table-sm o_main_table">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Codice</strong></td>
+                                    <td><span t-field="event.code"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Titolo</strong></td>
+                                    <td><span t-field="event.name"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tipologia</strong></td>
+                                    <td>
+                                        <span t-esc="dict(event._fields['event_type'].selection).get(event.event_type)"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Periodo</strong></td>
+                                    <td>
+                                        <span t-field="event.date_start" t-options="{'widget': 'date'}"/>
+                                        -
+                                        <span t-field="event.date_end" t-options="{'widget': 'date'}"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Durata (giorni)</strong></td>
+                                    <td><span t-field="event.duration_days"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Stato</strong></td>
+                                    <td><span t-esc="dict(event._fields['state'].selection).get(event.state)"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div t-if="event.module_ids">
+                            <h3>Moduli</h3>
+                            <t t-foreach="event.module_ids.sorted(lambda m: (m.sequence, m.name))" t-as="module">
+                                <h4><span t-field="module.name"/></h4>
+                                <p t-if="module.description" t-field="module.description"/>
+                                <table class="table table-sm o_secondary_table">
+                                    <thead>
+                                        <tr>
+                                            <th>Sessione</th>
+                                            <th>Inizio</th>
+                                            <th>Fine</th>
+                                            <th>Durata (ore)</th>
+                                            <th>Formatori</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="module.session_ids.sorted(lambda s: (s.date_start, s.sequence))" t-as="session">
+                                            <td><span t-field="session.name"/></td>
+                                            <td><span t-field="session.date_start" t-options="{'widget': 'datetime'}"/></td>
+                                            <td><span t-field="session.date_end" t-options="{'widget': 'datetime'}"/></td>
+                                            <td><span t-field="session.duration_hours"/></td>
+                                            <td>
+                                                <span t-esc=",".join(session.trainer_ids.mapped('name'))/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </t>
+                        </div>
+                        <div t-if="event.participant_ids">
+                            <h3>Partecipanti</h3>
+                            <p>
+                                <strong>Totale:</strong>
+                                <span t-esc="len(event.participant_ids)"/>
+                            </p>
+                            <ul>
+                                <li t-foreach="event.participant_ids" t-as="participant">
+                                    <span t-esc="participant.name"/>
+                                    <span t-if="participant.role == 'trainer'"> - <t t-esc="_('Formatore')"/></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_event_schedule_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="event">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">Scheduling Evento</h2>
+                        <p class="text-center">
+                            <span t-field="event.date_start" t-options="{'widget': 'date'}"/> -
+                            <span t-field="event.date_end" t-options="{'widget': 'date'}"/>
+                        </p>
+                        <t t-foreach="event._get_sessions_grouped_by_day()" t-as="group">
+                            <h3 class="mt32">
+                                <t t-esc="group['day'].strftime('%A %d %B %Y')"/>
+                            </h3>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Orario</th>
+                                        <th>Modulo</th>
+                                        <th>Sessione</th>
+                                        <th>Formatori</th>
+                                        <th>Durata</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="group['sessions']" t-as="session">
+                                        <td class="w-20">
+                                            <span t-field="session.date_start" t-options="{'widget': 'datetime'}"/> -
+                                            <span t-field="session.date_end" t-options="{'widget': 'datetime'}"/>
+                                        </td>
+                                        <td class="w-20"><span t-field="session.module_id.name"/></td>
+                                        <td><span t-field="session.name"/></td>
+                                        <td class="w-20"><span t-esc=",".join(session.trainer_ids.mapped('name'))/></td>
+                                        <td class="w-10"><span t-field="session.duration_hours"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <p class="text-muted">
+                                <strong>Ore totali giornata:</strong>
+                                <span t-esc="group['duration']"/>
+                            </p>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <report id="action_report_event_program" string="Programma Evento" model="training.event"
+            report_type="qweb-pdf" name="training_event.report_event_program_document"/>
+
+    <report id="action_report_event_schedule" string="Scheduling Evento" model="training.event"
+            report_type="qweb-pdf" name="training_event.report_event_schedule_document"/>
+</odoo>

@@ -1,0 +1,14 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_training_event_user,Event User,model_training_event,training_event.group_training_user,1,0,0,0
+access_training_event_trainer,Event Trainer,model_training_event,training_event.group_training_trainer,1,1,0,0
+access_training_event_admin,Event Admin,model_training_event,training_event.group_training_admin,1,1,1,1
+access_training_module_user,Module User,model_training_module,training_event.group_training_user,1,0,0,0
+access_training_module_trainer,Module Trainer,model_training_module,training_event.group_training_trainer,1,1,0,0
+access_training_module_admin,Module Admin,model_training_module,training_event.group_training_admin,1,1,1,1
+access_training_session_user,Session User,model_training_session,training_event.group_training_user,1,0,0,0
+access_training_session_trainer,Session Trainer,model_training_session,training_event.group_training_trainer,1,1,0,0
+access_training_session_admin,Session Admin,model_training_session,training_event.group_training_admin,1,1,1,1
+access_training_participant_user,Participant User,model_training_participant,training_event.group_training_user,1,0,0,0
+access_training_participant_trainer,Participant Trainer,model_training_participant,training_event.group_training_trainer,1,0,0,0
+access_training_participant_admin,Participant Admin,model_training_participant,training_event.group_training_admin,1,1,1,1
+access_training_clone_wizard_admin,Clone Wizard Admin,model_training_event_clone_wizard,training_event.group_training_admin,1,1,1,1
