@@ -38,7 +38,9 @@ services:
       --db-filter=.*
     volumes:
       - odoo-web-data:/var/lib/odoo
-      - ./addons:/mnt/addons
+      # addons caricati tramite la sezione "Files" di Dokploy
+      - ../files/addons:/mnt/addons
+      # config continua a venire dal repo
       - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
     ports:
       - "8069:8069"
