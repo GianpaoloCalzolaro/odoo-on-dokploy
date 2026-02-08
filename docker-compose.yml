@@ -1,83 +1,45 @@
-version: '3.8'
-
 services:
-  db:
-    image: postgres:${POSTGRES_VERSION:-16}
-    container_name: odoo-db
-    restart: always
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB:-postgres}
-      - POSTGRES_USER=${POSTGRES_USER:-odoo}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
-    volumes:
-      - odoo-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-odoo} -d ${POSTGRES_DB:-postgres}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - dokploy-network
-
-  web:
-    image: odoo:${ODOO_VERSION:-18.0}
-    container_name: odoo-web
-    restart: always
+  odoo:
+    # Use the image built by GitHub Actions and pushed to GHCR
+    image: ghcr.io/gianpaolocalzolaro/testodooc:latest
+    container_name: odoo_app
     depends_on:
       db:
         condition: service_healthy
     environment:
-      - HOST=db
-      - USER=${POSTGRES_USER:-odoo}
-      - PASSWORD=${POSTGRES_PASSWORD:-odoo}
-      - ADMIN_PASSWD=${ADMIN_PASSWD:-change_me}
-    command: >
-      odoo
-      --proxy-mode
-      --gevent-port=8072
-      --db-filter=.*
+      - HOST=${POSTGRES_HOST:-db}
+      - USER=${POSTGRES_USER}
+      - PASSWORD=${POSTGRES_PASSWORD}
+      # Enable proxy mode for Dokploy/Traefik TLS handling
+      - PROXY_MODE=True
     volumes:
-      - odoo-web-data:/var/lib/odoo
-      # addons caricati tramite github
-      - ./addons:/mnt/addons
-      # config continua a venire dal repo
-      - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
-    ports:
-      - "8069:8069"
-      - "8072:8072"
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=dokploy-network
+      # Only persist the filestore (attachments, session data)
+      # Custom addons are already inside the image (Bake-in)
+      - odoo-data:/var/lib/odoo
+    # Odoo standard port. Dokploy will map this via Traefik labels internally.
+    expose:
+      - "8069"
+    restart: unless-stopped
 
-      - traefik.http.routers.odoo.rule=Host(`odoomodule-test-ov7mcd-a58ee3-167-99-99-29.traefik.me`)
-      - traefik.http.routers.odoo.entrypoints=web
-      - traefik.http.middlewares.odoo-redirect-https.redirectscheme.scheme=https
-      - traefik.http.routers.odoo.middlewares=odoo-redirect-https
-
-      - traefik.http.routers.odoo-secure.rule=Host(`odoomodule-test-ov7mcd-a58ee3-167-99-99-29.traefik.me`)
-      - traefik.http.routers.odoo-secure.entrypoints=websecure
-      - traefik.http.routers.odoo-secure.tls.certresolver=letsencrypt
-      - traefik.http.routers.odoo-secure.service=odoo-svc
-      - traefik.http.services.odoo-svc.loadbalancer.server.port=8069
-
-      - traefik.http.routers.odoo-ws.rule=Host(`odoomodule-test-ov7mcd-a58ee3-167-99-99-29.traefik.me`) && PathPrefix(`/websocket`)
-      - traefik.http.routers.odoo-ws.entrypoints=websecure
-      - traefik.http.routers.odoo-ws.tls.certresolver=letsencrypt
-      - traefik.http.routers.odoo-ws.service=odoo-ws-svc
-      - traefik.http.services.odoo-ws-svc.loadbalancer.server.port=8072
-    networks:
-      - dokploy-network
+  db:
+    image: postgres:16
+    container_name: odoo_db
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      # Optimization for Odoo
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # Healthcheck ensures Odoo waits until the DB is actually accepting connections
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
 volumes:
-  odoo-db-data:
-  odoo-web-data:
-
-networks:
-  dokploy-network:
-    external: true
-
-
-
-
-
-
+  odoo-data:
+  db-data:
