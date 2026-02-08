@@ -1,11 +1,13 @@
-# Use the official Odoo 18 image as base
+# Immagine ufficiale Odoo 18 basata su Debian Bookworm
 FROM odoo:18.0
 
-# Switch to root to install system dependencies and pip packages
+# Passiamo all'utente root per installare dipendenze e gestire file di sistema
 USER root
 
-# Install system dependencies that might be required by OCA modules or custom addons
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Pulizia preventiva e installazione dipendenze di sistema
+# Nota: Abbiamo separato i comandi per chiarezza e per facilitare il debug del log
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     build-essential \
     python3-dev \
     libxml2-dev \
@@ -21,20 +23,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements.txt and install Python dependencies
-# This is done before copying code to leverage Docker cache
-COPY requirements.txt /requirements.txt
-RUN pip install --no-cache-dir -r /requirements.txt
+# Copiamo il file delle dipendenze Python (requirements.txt deve essere nella root del repo)
+COPY ./requirements.txt /opt/odoo/requirements.txt
 
-# Create directory for custom addons and copy them
-# We copy them to /mnt/extra-addons which is a standard Odoo path
+# Installazione delle dipendenze Python richieste dagli add-on
+RUN pip install --no-cache-dir -r /opt/odoo/requirements.txt
+
+# Creazione della cartella per gli add-on custom (se non esiste)
+# Copiamo il contenuto della cartella addons locale nel container
 COPY ./addons /mnt/extra-addons
 
-# Copy the configuration file to the standard location
+# Copia del file di configurazione odoo.conf
 COPY ./config/odoo.conf /etc/odoo/odoo.conf
 
-# Set correct permissions so the 'odoo' user can read the files
-RUN chown -R odoo:odoo /mnt/extra-addons /etc/odoo/odoo.conf
+# Gestione cruciale dei permessi: l'utente 'odoo' deve possedere i file per caricarli
+RUN chown -R odoo:odoo /mnt/extra-addons /etc/odoo/odoo.conf /var/lib/odoo
 
-# Switch back to the non-privileged odoo user
+# Torniamo all'utente non privilegiato per l'esecuzione
 USER odoo
