@@ -17,7 +17,6 @@ RUN apt-get update && \
     libldap2-dev \
     libssl-dev \
     libffi-dev \
-    libjpeg-dev \
     libpq-dev \
     git \
     && apt-get clean \
