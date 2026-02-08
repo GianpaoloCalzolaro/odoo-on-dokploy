@@ -17,7 +17,6 @@ RUN apt-get update && \
     libldap2-dev \
     libssl-dev \
     libffi-dev \
-    libpq-dev \
     git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
