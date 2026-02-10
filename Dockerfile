@@ -6,6 +6,7 @@ USER root
 
 # Pulizia preventiva e installazione dipendenze di sistema
 # Nota: Abbiamo separato i comandi per chiarezza e per facilitare il debug del log
+# hadolint ignore=DL3008
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
@@ -25,11 +26,14 @@ RUN apt-get update && \
 COPY ./requirements.txt /opt/odoo/requirements.txt
 
 # Installazione delle dipendenze Python richieste dagli add-on
-RUN pip install --no-cache-dir -r /opt/odoo/requirements.txt
+RUN pip install --no-cache-dir --break-system-packages -r /opt/odoo/requirements.txt
 
 # Creazione della cartella per gli add-on custom (se non esiste)
 # Copiamo il contenuto della cartella addons locale nel container
 COPY ./addons /mnt/extra-addons
+
+# Installazione delle dipendenze Python specifiche dei singoli addon
+RUN find /mnt/extra-addons -name 'requirements.txt' -exec pip install --no-cache-dir --break-system-packages -r {} \;
 
 # Copia del file di configurazione odoo.conf
 COPY ./config/odoo.conf /etc/odoo/odoo.conf
