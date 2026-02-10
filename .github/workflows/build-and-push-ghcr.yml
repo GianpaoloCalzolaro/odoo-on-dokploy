@@ -9,6 +9,7 @@ on:
       - 'Dockerfile'
       - 'addons/**'
       - 'config/**'
+      - 'requirements.txt'
   workflow_dispatch:
 
 permissions:
