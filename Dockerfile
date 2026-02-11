@@ -4,36 +4,42 @@ FROM odoo:18.0
 # Passiamo all'utente root per installare dipendenze e gestire file di sistema
 USER root
 
-# Pulizia preventiva e installazione dipendenze di sistema
-# Nota: Abbiamo separato i comandi per chiarezza e per facilitare il debug del log
+# Copiamo requirements e addons prima dell'installazione per sfruttare la cache dei layer
+COPY ./requirements.txt /opt/odoo/requirements.txt
+COPY ./addons /mnt/extra-addons
+
+# Installazione dipendenze di sistema (build-time), dipendenze Python, e pulizia
+# in un singolo layer per minimizzare le dimensioni dell'immagine finale
 # hadolint ignore=DL3008
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    build-essential \
-    python3-dev \
-    libxml2-dev \
-    libxslt1-dev \
-    zlib1g-dev \
-    libsasl2-dev \
-    libldap2-dev \
-    libssl-dev \
-    libffi-dev \
-    git \
+        build-essential \
+        python3-dev \
+        libxml2-dev \
+        libxslt1-dev \
+        zlib1g-dev \
+        libsasl2-dev \
+        libldap2-dev \
+        libssl-dev \
+        libffi-dev \
+        git \
+    && pip install --no-cache-dir --break-system-packages \
+        -r /opt/odoo/requirements.txt \
+    && find /mnt/extra-addons -name 'requirements.txt' \
+        -exec pip install --no-cache-dir --break-system-packages -r {} \; \
+    && apt-get purge -y --auto-remove \
+        build-essential \
+        python3-dev \
+        libxml2-dev \
+        libxslt1-dev \
+        zlib1g-dev \
+        libsasl2-dev \
+        libldap2-dev \
+        libssl-dev \
+        libffi-dev \
+        git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-# Copiamo il file delle dipendenze Python (requirements.txt deve essere nella root del repo)
-COPY ./requirements.txt /opt/odoo/requirements.txt
-
-# Installazione delle dipendenze Python richieste dagli add-on
-RUN pip install --no-cache-dir --break-system-packages -r /opt/odoo/requirements.txt
-
-# Creazione della cartella per gli add-on custom (se non esiste)
-# Copiamo il contenuto della cartella addons locale nel container
-COPY ./addons /mnt/extra-addons
-
-# Installazione delle dipendenze Python specifiche dei singoli addon
-RUN find /mnt/extra-addons -name 'requirements.txt' -exec pip install --no-cache-dir --break-system-packages -r {} \;
 
 # Copia del file di configurazione odoo.conf
 COPY ./config/odoo.conf /etc/odoo/odoo.conf
@@ -43,3 +49,7 @@ RUN chown -R odoo:odoo /mnt/extra-addons /etc/odoo/odoo.conf /var/lib/odoo
 
 # Torniamo all'utente non privilegiato per l'esecuzione
 USER odoo
+
+# Healthcheck: verifica che Odoo risponda sulla porta 8069
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8069/web/health')" || exit 1
