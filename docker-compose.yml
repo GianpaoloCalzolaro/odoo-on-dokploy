@@ -9,15 +9,13 @@ services:
       - HOST=${POSTGRES_HOST:-db}
       - USER=${POSTGRES_USER:-odoo}
       - PASSWORD=${POSTGRES_PASSWORD:-odoo}
-      # Enable proxy mode for Dokploy/Traefik TLS handling
-      - PROXY_MODE=True
     volumes:
       # Only persist the filestore (attachments, session data)
       # Custom addons are already inside the image (Bake-in)
       - odoo-data:/var/lib/odoo
-    # Odoo standard port. Dokploy will map this via Traefik labels internally.
-    expose:
-      - "8069"
+    # Odoo standard port mapped to host for direct access
+    ports:
+      - "8069:8069"
     restart: unless-stopped
 
   db:
