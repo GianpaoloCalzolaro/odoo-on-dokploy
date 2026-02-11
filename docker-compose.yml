@@ -32,10 +32,11 @@ services:
       - db-data:/var/lib/postgresql/data
     # Healthcheck ensures Odoo waits until the DB is actually accepting connections
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-odoo} -d $${POSTGRES_DB:-postgres}"]
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     restart: unless-stopped
 
 volumes:
