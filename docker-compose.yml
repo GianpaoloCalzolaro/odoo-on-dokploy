@@ -1,6 +1,6 @@
 services:
   odoo:
-    image: ghcr.io/gianpaolocalzolaro/testodooc:latest
+    image: ghcr.io/gianpaolocalzolaro/mondisostenibili:latest
     depends_on:
       db:
         condition: service_healthy
@@ -45,3 +45,4 @@ networks:
     driver: bridge
   dokploy-network:
     external: true
+

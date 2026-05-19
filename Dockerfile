@@ -50,6 +50,6 @@ RUN chown -R odoo:odoo /mnt/extra-addons /etc/odoo/odoo.conf /var/lib/odoo
 # Torniamo all'utente non privilegiato per l'esecuzione
 USER odoo
 
-# Healthcheck: verifica che Odoo risponda sulla porta 8069
+# Healthcheck: verifica che Odoo risponda sulla porta 8069 mod
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8069/web/health')" || exit 1
