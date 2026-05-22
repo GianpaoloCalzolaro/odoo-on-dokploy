@@ -14,6 +14,7 @@ COPY ./addons /mnt/extra-addons
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
+        gettext-base \
         python3-dev \
         libxml2-dev \
         libxslt1-dev \
@@ -41,14 +42,19 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copia del file di configurazione odoo.conf
-COPY ./config/odoo.conf /etc/odoo/odoo.conf
+# Copia del template di configurazione e dell'entrypoint wrapper
+COPY ./config/odoo.conf /etc/odoo/odoo.conf.template
+COPY ./docker/entrypoint.sh /usr/local/bin/odoo-entrypoint.sh
 
 # Gestione cruciale dei permessi: l'utente 'odoo' deve possedere i file per caricarli
-RUN chown -R odoo:odoo /mnt/extra-addons /etc/odoo/odoo.conf /var/lib/odoo
+RUN cp /etc/odoo/odoo.conf.template /etc/odoo/odoo.conf \
+    && chmod 755 /usr/local/bin/odoo-entrypoint.sh \
+    && chown -R odoo:odoo /mnt/extra-addons /etc/odoo/odoo.conf /etc/odoo/odoo.conf.template /var/lib/odoo
 
 # Torniamo all'utente non privilegiato per l'esecuzione
 USER odoo
+
+ENTRYPOINT ["/usr/local/bin/odoo-entrypoint.sh"]
 
 # Healthcheck: verifica che Odoo risponda sulla porta 8069 mod
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
