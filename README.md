@@ -1,73 +1,206 @@
 # odoo-on-dokploy
 
-Questo repository è un boilerplate minimale per avviare un'istanza Odoo usando Docker Compose e provarne il deployment con un reverse-proxy (es. Traefik). È pensato per scopi di sviluppo e test.
+Template GitHub per avviare una nuova istanza Odoo 18 su [Dokploy](https://dokploy.com/) con Docker Compose, Traefik e CI/CD automatizzata via GitHub Actions.
 
-## A cosa serve
-- Fornire un ambiente Docker pronto per eseguire Odoo (default: Odoo 18) con PostgreSQL come database.
-- Permettere il montaggio di moduli personalizzati tramite la cartella `addons/`.
-- Mostrare un esempio di integrazione con Traefik (label per router, TLS/ACME e WebSocket).
+> Consulta [`CHECKLIST.md`](CHECKLIST.md) prima di ogni nuovo deploy.
 
-## Struttura del progetto
-- `docker-compose.yml` - definisce i servizi `db` (Postgres) e `web` (Odoo) e i volumi usati.
-- `addons/` - cartella locale da montare in Odoo come `extra-addons` per i moduli custom.
-- `config/odoo.conf` - file di configurazione Odoo (montato nel container). Contiene la password dell'admin e le impostazioni minime.
+## Struttura del repository
 
-## Template repository e naming consigliato
-- Rinominare il repository base in `odoo18-template`.
-- Abilitare l'opzione GitHub **Template repository** così i nuovi progetti vengono creati con **Use this template**.
-- Usare la naming convention `odoo18-[nomecliente]` per i repository derivati.
-- La GitHub Action di build pubblica automaticamente l'immagine `ghcr.io/<owner>/<repository>:latest`, quindi il nome del repository diventa parte del tag Docker.
-
-## Prerequisiti
-- Docker e Docker Compose installati sulla macchina host.
-- Una rete Docker esterna chiamata `dokploy-network` (puoi crearla con `docker network create dokploy-network`).
-- (Opzionale) Traefik in esecuzione e connesso alla stessa rete `dokploy-network` per sfruttare le label di routing e TLS.
-
-## Come avviare (rapido)
-1. Assicurati che la rete Docker esterna esista:
-
-```powershell
-docker network create dokploy-network
 ```
-
-2. Copia `.env.example` in `.env` e configura almeno `PROJECT_NAME`, `DOMAIN`, `COMPOSE_PROJECT_NAME=${PROJECT_NAME}`, `ODOO_IMAGE`, `POSTGRES_PASSWORD` e `ODOO_ADMIN_PASSWD`. Verifica di usare Docker Compose con supporto all'espansione delle variabili nel file `.env`, così `COMPOSE_PROJECT_NAME` eredita correttamente il valore di `PROJECT_NAME`.
-
-3. Avvia lo stack:
-
-```powershell
-docker-compose up -d
+odoo-on-dokploy/
+├── .env.example          # Variabili d'ambiente da copiare in .env
+├── .github/
+│   └── workflows/
+│       └── build-and-push-ghcr.yml  # CI/CD: build e push immagine su GHCR
+├── addons/               # Moduli Odoo custom del progetto
+├── config/
+│   └── odoo.conf         # Template di configurazione Odoo (renderizzato a runtime)
+├── docker/
+│   └── entrypoint.sh     # Wrapper entrypoint: esegue envsubst poi avvia Odoo
+├── docker-compose.yml    # Stack: odoo + postgres + rete Traefik
+├── Dockerfile            # Immagine custom basata su odoo:18.0
+└── requirements.txt      # Dipendenze Python aggiuntive (installate nel Dockerfile)
 ```
-
-4. Controlla i log del servizio `odoo` per verificare che Odoo sia partito correttamente:
-
-```powershell
-docker-compose logs -f odoo
-```
-
-Se Odoo è avviato correttamente vedrai nei log l'indicazione che il server HTTP è in ascolto sulla porta `8069`.
-
-## Configurazione della password amministratore
-La password amministratore è gestita tramite la variabile `ODOO_ADMIN_PASSWD` nel file `.env`. Il template `config/odoo.conf` viene renderizzato a runtime dal container con `envsubst`, così nessuna credenziale rimane hardcoded nel repository.
-
-## Note su Traefik e routing
-- Il `docker-compose.yml` usa label Traefik dinamiche basate su `PROJECT_NAME` e `DOMAIN`, così più istanze Odoo possono convivere sullo stesso nodo Dokploy.
-- Il traffico HTTP/HTTPS passa da Traefik via rete Docker interna: il servizio `odoo` non espone più porte host con `ports`.
-- Odoo continua a servire l'applicazione principale sulla porta interna `8069`, mentre il router WebSocket/longpolling inoltra `/websocket` verso la porta interna `8072`.
-- Verifica che Traefik sia connesso alla rete `dokploy-network` e che il provider Docker sia abilitato, altrimenti Traefik non vedrà i container Odoo.
-- Controlla che porte 80/443 siano aperte sull'host se usi ACME/Let's Encrypt.
-
-## Debug rapido
-- `docker-compose ps` - vedere lo stato dei container.
-- `docker-compose logs odoo` - guardare i log di Odoo.
-- `docker network inspect dokploy-network` - confermare che Traefik e Odoo siano sulla stessa rete.
-- `curl -H "Host: il-tuo-dominio" http://<indirizzo-traefik>` - testare il routing verso Traefik con l'header Host corretto.
-
-## Ulteriori miglioramenti suggeriti
-- Aggiungere gestione dei certificati e/o backup dei volumi.
 
 ---
 
-File creati/modificati in questa repo per risolvere un problema noto con la CLI di Odoo:
-- `config/odoo.conf` (aggiunto) - usa variabili d'ambiente renderizzate a runtime invece di credenziali hardcoded.
+## 1. Avviare un nuovo progetto
 
-Se vuoi, posso mostrarti i comandi PowerShell esatti per il debug o applicare altre migliorie (es. template per variabili d'ambiente).
+### 1.1 Creare il repository dal template
+
+1. Aprire [https://github.com/GianpaoloCalzolaro/odoo-on-dokploy](https://github.com/GianpaoloCalzolaro/odoo-on-dokploy)
+2. Cliccare **Use this template → Create a new repository**
+3. Nominare il repository con la convenzione `odoo18-[nomecliente]` (es. `odoo18-acme`)
+
+> Il nome del repository diventa parte del tag Docker pubblicato su GHCR:
+> `ghcr.io/<owner>/odoo18-[nomecliente]:latest`
+
+### 1.2 Clonare e configurare le variabili
+
+```bash
+git clone https://github.com/<owner>/odoo18-[nomecliente].git
+cd odoo18-[nomecliente]
+cp .env.example .env
+```
+
+Aprire `.env` e compilare **tutte** le variabili:
+
+| Variabile | Esempio | Note |
+|---|---|---|
+| `PROJECT_NAME` | `acme` | Univoco sul nodo; usato per router Traefik e nomi volumi |
+| `COMPOSE_PROJECT_NAME` | `acme` | Deve corrispondere a `PROJECT_NAME` |
+| `DOMAIN` | `odoo.acme.it` | DNS già puntato al nodo Dokploy |
+| `ODOO_IMAGE` | `ghcr.io/<owner>/odoo18-acme:latest` | Immagine pubblicata dalla CI/CD |
+| `POSTGRES_DB` | `odoo` | Nome del database |
+| `POSTGRES_USER` | `odoo` | Utente PostgreSQL |
+| `POSTGRES_PASSWORD` | *(stringa sicura)* | **Cambiare** dal placeholder |
+| `ODOO_ADMIN_PASSWD` | *(stringa sicura)* | **Cambiare** dal placeholder |
+| `ODOO_VERSION` | `18.0` | Versione Odoo |
+| `POSTGRES_VERSION` | `16` | Versione PostgreSQL |
+
+### 1.3 Prima build CI/CD
+
+```bash
+git push origin main
+```
+
+La GitHub Action `.github/workflows/build-and-push-ghcr.yml` si attiva automaticamente su push verso `main` quando vengono modificati `Dockerfile`, `addons/`, `config/` o `requirements.txt`. Al termine pubblica l'immagine su GHCR.
+
+Verificare che il package GHCR sia visibile e accessibile (pubblico o con i permessi corretti).
+
+### 1.4 Configurare il progetto su Dokploy
+
+1. Creare un nuovo progetto su Dokploy (tipo **Docker Compose**)
+2. Collegare il repository GitHub appena creato
+3. Nella sezione **Environment Variables** di Dokploy inserire le stesse variabili presenti nel `.env` locale
+4. Impostare il branch di deploy su `main`
+
+### 1.5 Creare la rete Docker sul nodo
+
+Se la rete `dokploy-network` non esiste ancora sul nodo:
+
+```bash
+docker network create dokploy-network
+```
+
+Verificare con:
+
+```bash
+docker network ls | grep dokploy-network
+```
+
+### 1.6 Verificare il deploy
+
+Dopo il deploy, aprire `https://<DOMAIN>` nel browser e controllare che:
+
+- La pagina di login Odoo sia raggiungibile via HTTPS
+- Il certificato TLS (Let's Encrypt) sia valido
+- Non ci siano errori nei log: `docker compose logs -f odoo`
+
+---
+
+## 2. Aggiungere moduli custom
+
+### 2.1 Struttura della cartella `addons/`
+
+Ogni modulo Odoo è una sottocartella con il file `__manifest__.py`:
+
+```
+addons/
+├── mail_debrand/             # Modulo baseline: rimozione branding email
+├── web_chatter_position/     # Modulo baseline: posizione chatter configurabile
+├── website_odoo_debranding/  # Modulo baseline: rimozione "Powered by Odoo"
+└── mio_modulo_custom/        # Modulo custom del progetto
+    ├── __init__.py
+    ├── __manifest__.py
+    └── ...
+```
+
+I moduli nella cartella `addons/` vengono copiati nel container al momento della build (`COPY ./addons /mnt/extra-addons`) e sono disponibili come **extra-addons** in Odoo.
+
+### 2.2 Convenzioni di naming
+
+- Usare `snake_case` per il nome della cartella/modulo (es. `crm_custom_acme`)
+- Il nome della cartella deve corrispondere al valore `name` nel `__manifest__.py`
+- Prefissare i moduli specifici del cliente con il nome del progetto per evitare conflitti (es. `acme_sale_custom`)
+
+### 2.3 Dipendenze Python aggiuntive
+
+Se un modulo custom richiede librerie Python non incluse nell'immagine base Odoo:
+
+1. Aggiungere le dipendenze nel file **`requirements.txt`** nella root del repository (installate a livello di immagine):
+
+   ```
+   pandas
+   requests
+   ```
+
+2. Oppure creare un `requirements.txt` all'interno della cartella del modulo custom. Il `Dockerfile` lo rileva e lo installa automaticamente:
+
+   ```dockerfile
+   find /mnt/extra-addons -name 'requirements.txt' \
+       -exec pip install --no-cache-dir --break-system-packages -r {} \;
+   ```
+
+Dopo ogni modifica a `requirements.txt` o ai file del modulo, fare push su `main` per triggerare una nuova build CI/CD.
+
+---
+
+## 3. Operazioni di manutenzione
+
+### 3.1 Backup del database
+
+Eseguire un dump PostgreSQL dal container `db`:
+
+```bash
+docker exec <PROJECT_NAME>-db-1 pg_dump -U odoo -d odoo -F c -f /tmp/odoo_backup.dump
+docker cp <PROJECT_NAME>-db-1:/tmp/odoo_backup.dump ./odoo_backup_$(date +%Y%m%d).dump
+```
+
+Per includere i filestore di Odoo (allegati, immagini):
+
+```bash
+docker cp <PROJECT_NAME>-odoo-1:/var/lib/odoo ./odoo_filestore_$(date +%Y%m%d)
+```
+
+### 3.2 Aggiornamento dell'immagine
+
+Per aggiornare l'immagine Odoo all'ultima versione pubblicata dalla CI/CD:
+
+```bash
+docker compose pull odoo
+docker compose up -d odoo
+```
+
+Su Dokploy è sufficiente cliccare **Redeploy** per scaricare l'ultima immagine da GHCR.
+
+### 3.3 Restore su nuovo nodo
+
+1. Copiare il file di backup `.dump` sul nuovo nodo
+2. Creare la rete `dokploy-network` se non esiste: `docker network create dokploy-network`
+3. Avviare solo il servizio database: `docker compose up -d db`
+4. Ripristinare il dump:
+
+   ```bash
+   docker cp odoo_backup.dump <PROJECT_NAME>-db-1:/tmp/
+   docker exec <PROJECT_NAME>-db-1 pg_restore -U odoo -d odoo --clean /tmp/odoo_backup.dump
+   ```
+
+5. Ripristinare il filestore nella cartella del volume `odoo-data`:
+
+   ```bash
+   docker cp ./odoo_filestore/. <PROJECT_NAME>-odoo-1:/var/lib/odoo/
+   ```
+
+6. Avviare il servizio Odoo: `docker compose up -d odoo`
+
+---
+
+## Debug rapido
+
+```bash
+docker compose ps                          # stato dei container
+docker compose logs -f odoo               # log Odoo in tempo reale
+docker network inspect dokploy-network    # verifica connessione Traefik ↔ Odoo
+docker compose exec odoo bash             # shell nel container Odoo
+```
