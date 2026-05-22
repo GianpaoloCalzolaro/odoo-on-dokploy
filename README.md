@@ -30,36 +30,38 @@ Questo repository è un boilerplate minimale per avviare un'istanza Odoo usando 
 docker network create dokploy-network
 ```
 
-2. Avvia lo stack:
+2. Configura in `.env` almeno `PROJECT_NAME`, `DOMAIN`, `COMPOSE_PROJECT_NAME=${PROJECT_NAME}` e `ODOO_IMAGE`.
+
+3. Avvia lo stack:
 
 ```powershell
 docker-compose up -d
 ```
 
-3. Controlla i log del servizio web per verificare che Odoo sia partito correttamente:
+4. Controlla i log del servizio `odoo` per verificare che Odoo sia partito correttamente:
 
 ```powershell
-docker-compose logs -f web
+docker-compose logs -f odoo
 ```
 
 Se Odoo è avviato correttamente vedrai nei log l'indicazione che il server HTTP è in ascolto sulla porta `8069`.
 
 ## Configurazione della password amministratore
-La password amministratore è gestita tramite `config/odoo.conf` (chiave `admin_passwd`). Per cambiarla modifica `config/odoo.conf` e riavvia il container `web`.
+La password amministratore è gestita tramite `config/odoo.conf` (chiave `admin_passwd`). Per cambiarla modifica `config/odoo.conf` e riavvia il container `odoo`.
 
 ## Note su Traefik e routing
-- Il `docker-compose.yml` contiene label di esempio per Traefik (Host, entrypoints, certificati Let's Encrypt, router WebSocket). Queste label contengono un hostname di test e vanno adattate al tuo dominio reale.
+- Il `docker-compose.yml` usa label Traefik dinamiche basate su `PROJECT_NAME` e `DOMAIN`, così più istanze Odoo possono convivere sullo stesso nodo Dokploy.
+- Il traffico HTTP/HTTPS passa da Traefik via rete Docker interna: il servizio `odoo` non espone più porte host con `ports`.
 - Verifica che Traefik sia connesso alla rete `dokploy-network` e che il provider Docker sia abilitato, altrimenti Traefik non vedrà i container Odoo.
 - Controlla che porte 80/443 siano aperte sull'host se usi ACME/Let's Encrypt.
 
 ## Debug rapido
 - `docker-compose ps` - vedere lo stato dei container.
-- `docker-compose logs web` - guardare i log di Odoo.
+- `docker-compose logs odoo` - guardare i log di Odoo.
 - `docker network inspect dokploy-network` - confermare che Traefik e Odoo siano sulla stessa rete.
 - `curl -H "Host: il-tuo-dominio" http://<indirizzo-traefik>` - testare il routing verso Traefik con l'header Host corretto.
 
 ## Ulteriori miglioramenti suggeriti
-- Parametrizzare le label Traefik con variabili d'ambiente o rimuovere l'hostname hard-coded.
 - Aggiungere gestione dei certificati e/o backup dei volumi.
 
 ---
