@@ -12,6 +12,12 @@ Questo repository è un boilerplate minimale per avviare un'istanza Odoo usando 
 - `addons/` - cartella locale da montare in Odoo come `extra-addons` per i moduli custom.
 - `config/odoo.conf` - file di configurazione Odoo (montato nel container). Contiene la password dell'admin e le impostazioni minime.
 
+## Template repository e naming consigliato
+- Rinominare il repository base in `odoo18-template`.
+- Abilitare l'opzione GitHub **Template repository** così i nuovi progetti vengono creati con **Use this template**.
+- Usare la naming convention `odoo18-[nomecliente]` per i repository derivati.
+- La GitHub Action di build pubblica automaticamente l'immagine `ghcr.io/<owner>/<repository>:latest`, quindi il nome del repository diventa parte del tag Docker.
+
 ## Prerequisiti
 - Docker e Docker Compose installati sulla macchina host.
 - Una rete Docker esterna chiamata `dokploy-network` (puoi crearla con `docker network create dokploy-network`).
