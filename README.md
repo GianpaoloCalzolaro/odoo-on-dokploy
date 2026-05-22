@@ -30,7 +30,7 @@ Questo repository è un boilerplate minimale per avviare un'istanza Odoo usando 
 docker network create dokploy-network
 ```
 
-2. Configura in `.env` almeno `PROJECT_NAME`, `DOMAIN`, `COMPOSE_PROJECT_NAME=${PROJECT_NAME}` e `ODOO_IMAGE`.
+2. Configura in `.env` almeno `PROJECT_NAME`, `DOMAIN`, `COMPOSE_PROJECT_NAME=${PROJECT_NAME}` e `ODOO_IMAGE`. Verifica di usare Docker Compose con supporto all'espansione delle variabili nel file `.env`, così `COMPOSE_PROJECT_NAME` eredita correttamente il valore di `PROJECT_NAME`.
 
 3. Avvia lo stack:
 
@@ -52,6 +52,7 @@ La password amministratore è gestita tramite `config/odoo.conf` (chiave `admin_
 ## Note su Traefik e routing
 - Il `docker-compose.yml` usa label Traefik dinamiche basate su `PROJECT_NAME` e `DOMAIN`, così più istanze Odoo possono convivere sullo stesso nodo Dokploy.
 - Il traffico HTTP/HTTPS passa da Traefik via rete Docker interna: il servizio `odoo` non espone più porte host con `ports`.
+- Odoo continua a servire l'applicazione principale sulla porta interna `8069`, mentre il router WebSocket/longpolling inoltra `/websocket` verso la porta interna `8072`.
 - Verifica che Traefik sia connesso alla rete `dokploy-network` e che il provider Docker sia abilitato, altrimenti Traefik non vedrà i container Odoo.
 - Controlla che porte 80/443 siano aperte sull'host se usi ACME/Let's Encrypt.
 
