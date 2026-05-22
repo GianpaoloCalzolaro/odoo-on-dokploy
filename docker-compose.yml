@@ -1,6 +1,6 @@
 services:
   odoo:
-    image: ghcr.io/gianpaolocalzolaro/mondisostenibili:latest
+    image: ${ODOO_IMAGE}
     depends_on:
       db:
         condition: service_healthy
@@ -10,8 +10,15 @@ services:
       - PASSWORD=${POSTGRES_PASSWORD:-odoo}
     volumes:
       - odoo-data:/var/lib/odoo
-    ports:
-      - "8069:8069"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PROJECT_NAME}.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.${PROJECT_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.${PROJECT_NAME}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.${PROJECT_NAME}.loadbalancer.server.port=8069"
+      - "traefik.http.routers.${PROJECT_NAME}-ws.rule=Host(`${DOMAIN}`) && PathPrefix(`/websocket`)"
+      - "traefik.http.routers.${PROJECT_NAME}-ws.entrypoints=websecure"
+      - "traefik.http.services.${PROJECT_NAME}-ws.loadbalancer.server.port=8072"
     networks:
       - internal
       - dokploy-network
@@ -38,11 +45,12 @@ services:
 
 volumes:
   odoo-data:
+    name: "${PROJECT_NAME}_odoo-data"
   db-data:
+    name: "${PROJECT_NAME}_db-data"
 
 networks:
   internal:
     driver: bridge
   dokploy-network:
     external: true
-
