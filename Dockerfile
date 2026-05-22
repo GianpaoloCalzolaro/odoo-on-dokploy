@@ -47,9 +47,8 @@ COPY ./config/odoo.conf /etc/odoo/odoo.conf.template
 COPY ./docker/entrypoint.sh /usr/local/bin/odoo-entrypoint.sh
 
 # Gestione cruciale dei permessi: l'utente 'odoo' deve possedere i file per caricarli
-RUN cp /etc/odoo/odoo.conf.template /etc/odoo/odoo.conf \
-    && chmod 755 /usr/local/bin/odoo-entrypoint.sh \
-    && chown -R odoo:odoo /mnt/extra-addons /etc/odoo/odoo.conf /etc/odoo/odoo.conf.template /var/lib/odoo
+RUN chmod 755 /usr/local/bin/odoo-entrypoint.sh \
+    && chown -R odoo:odoo /mnt/extra-addons /etc/odoo /var/lib/odoo
 
 # Torniamo all'utente non privilegiato per l'esecuzione
 USER odoo

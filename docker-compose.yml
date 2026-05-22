@@ -9,9 +9,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-odoo}
       - POSTGRES_USER=${POSTGRES_USER:-odoo}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
-      - HOST=${POSTGRES_HOST:-db}
-      - USER=${POSTGRES_USER:-odoo}
-      - PASSWORD=${POSTGRES_PASSWORD:-odoo}
     volumes:
       - odoo-data:/var/lib/odoo
     labels:
