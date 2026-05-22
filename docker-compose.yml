@@ -5,9 +5,10 @@ services:
       db:
         condition: service_healthy
     environment:
-      - HOST=${POSTGRES_HOST:-db}
-      - USER=${POSTGRES_USER:-odoo}
-      - PASSWORD=${POSTGRES_PASSWORD:-odoo}
+      - ODOO_ADMIN_PASSWD=${ODOO_ADMIN_PASSWD}
+      - POSTGRES_DB=${POSTGRES_DB:-odoo}
+      - POSTGRES_USER=${POSTGRES_USER:-odoo}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
     volumes:
       - odoo-data:/var/lib/odoo
     labels:
@@ -25,16 +26,16 @@ services:
     restart: unless-stopped
 
   db:
-    image: postgres:16
+    image: postgres:${POSTGRES_VERSION:-16}
     environment:
-      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-odoo}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
       - POSTGRES_USER=${POSTGRES_USER:-odoo}
       - POSTGRES_INITDB_ARGS=--encoding=UTF8 --lc-collate=C --lc-ctype=C
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-odoo} -d $${POSTGRES_DB:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-odoo} -d $${POSTGRES_DB:-odoo}"]
       interval: 10s
       timeout: 5s
       retries: 5

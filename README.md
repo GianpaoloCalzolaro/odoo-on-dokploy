@@ -30,7 +30,7 @@ Questo repository è un boilerplate minimale per avviare un'istanza Odoo usando 
 docker network create dokploy-network
 ```
 
-2. Configura in `.env` almeno `PROJECT_NAME`, `DOMAIN`, `COMPOSE_PROJECT_NAME=${PROJECT_NAME}` e `ODOO_IMAGE`. Verifica di usare Docker Compose con supporto all'espansione delle variabili nel file `.env`, così `COMPOSE_PROJECT_NAME` eredita correttamente il valore di `PROJECT_NAME`.
+2. Copia `.env.example` in `.env` e configura almeno `PROJECT_NAME`, `DOMAIN`, `COMPOSE_PROJECT_NAME=${PROJECT_NAME}`, `ODOO_IMAGE`, `POSTGRES_PASSWORD` e `ODOO_ADMIN_PASSWD`. Verifica di usare Docker Compose con supporto all'espansione delle variabili nel file `.env`, così `COMPOSE_PROJECT_NAME` eredita correttamente il valore di `PROJECT_NAME`.
 
 3. Avvia lo stack:
 
@@ -47,7 +47,7 @@ docker-compose logs -f odoo
 Se Odoo è avviato correttamente vedrai nei log l'indicazione che il server HTTP è in ascolto sulla porta `8069`.
 
 ## Configurazione della password amministratore
-La password amministratore è gestita tramite `config/odoo.conf` (chiave `admin_passwd`). Per cambiarla modifica `config/odoo.conf` e riavvia il container `odoo`.
+La password amministratore è gestita tramite la variabile `ODOO_ADMIN_PASSWD` nel file `.env`. Il template `config/odoo.conf` viene renderizzato a runtime dal container con `envsubst`, così nessuna credenziale rimane hardcoded nel repository.
 
 ## Note su Traefik e routing
 - Il `docker-compose.yml` usa label Traefik dinamiche basate su `PROJECT_NAME` e `DOMAIN`, così più istanze Odoo possono convivere sullo stesso nodo Dokploy.
@@ -68,6 +68,6 @@ La password amministratore è gestita tramite `config/odoo.conf` (chiave `admin_
 ---
 
 File creati/modificati in questa repo per risolvere un problema noto con la CLI di Odoo:
-- `config/odoo.conf` (aggiunto) - sposta `admin_passwd` nel file di configurazione invece che passarlo come flag CLI non supportato.
+- `config/odoo.conf` (aggiunto) - usa variabili d'ambiente renderizzate a runtime invece di credenziali hardcoded.
 
 Se vuoi, posso mostrarti i comandi PowerShell esatti per il debug o applicare altre migliorie (es. template per variabili d'ambiente).
