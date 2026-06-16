@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_concorso_edizione_user,concorso.edizione user,model_concorso_edizione,base.group_user,1,0,0,0
+access_concorso_edizione_manager,concorso.edizione manager,model_concorso_edizione,base.group_system,1,1,1,1
+access_concorso_elaborato_user,concorso.elaborato user,model_concorso_elaborato,base.group_user,1,0,0,0
+access_concorso_elaborato_manager,concorso.elaborato manager,model_concorso_elaborato,base.group_system,1,1,1,1
+access_concorso_sezione_user,concorso.sezione user,model_concorso_sezione,base.group_user,1,0,0,0
+access_concorso_sezione_manager,concorso.sezione manager,model_concorso_sezione,base.group_system,1,1,1,1
+access_concorso_sottosezione_user,concorso.sottosezione user,model_concorso_sottosezione,base.group_user,1,0,0,0
+access_concorso_sottosezione_manager,concorso.sottosezione manager,model_concorso_sottosezione,base.group_system,1,1,1,1

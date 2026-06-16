@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Template report statistiche per sezione/sottosezione.
+         Usa get_statistiche_per_sezione() e get_statistiche_per_sottosezione()
+         che internamente usano _read_group aggregato (fix ODOO18-009). -->
+    <template id="report_statistiche_edizione">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="edizione">
+                <div class="page">
+                    <h2>
+                        <t t-out="edizione.name"/>
+                        — Statistiche
+                    </h2>
+                    <p>
+                        Stato: <strong><t t-out="dict(edizione._fields['stato'].selection).get(edizione.stato, '')"/></strong>
+                        | Periodo: <t t-out="edizione.data_inizio"/> – <t t-out="edizione.data_fine"/>
+                    </p>
+
+                    <h3>Riepilogo Generale</h3>
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Totale elaborati</td>
+                            <td><t t-out="edizione.totale_elaborati"/></td>
+                        </tr>
+                        <tr>
+                            <td>Totale partecipanti</td>
+                            <td><t t-out="edizione.totale_partecipanti"/></td>
+                        </tr>
+                        <tr>
+                            <td>Valutati</td>
+                            <td><t t-out="edizione.totale_valutati"/></td>
+                        </tr>
+                        <tr>
+                            <td>Premiati</td>
+                            <td><t t-out="edizione.totale_premiati"/></td>
+                        </tr>
+                        <tr>
+                            <td>Media punteggi</td>
+                            <td><t t-out="'%.2f' % edizione.media_punteggi_generale"/></td>
+                        </tr>
+                    </table>
+
+                    <h3>Statistiche per Sezione</h3>
+                    <t t-set="stats_sezione" t-value="edizione.get_statistiche_per_sezione()"/>
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Sezione</th>
+                                <th>Elaborati</th>
+                                <th>Media Punteggi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="stats_sezione" t-as="s">
+                                <tr>
+                                    <td><t t-out="s['sezione_nome']"/></td>
+                                    <td><t t-out="s['totale_elaborati']"/></td>
+                                    <td><t t-out="'%.2f' % s['media_punteggi']"/></td>
+                                </tr>
+                            </t>
+                            <t t-if="not stats_sezione">
+                                <tr><td colspan="3">Nessun dato disponibile.</td></tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <h3>Statistiche per Sottosezione</h3>
+                    <t t-set="stats_sotto" t-value="edizione.get_statistiche_per_sottosezione()"/>
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Sezione</th>
+                                <th>Sottosezione</th>
+                                <th>Elaborati</th>
+                                <th>Media Punteggi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="stats_sotto" t-as="s">
+                                <tr>
+                                    <td><t t-out="s['sezione_nome']"/></td>
+                                    <td><t t-out="s['sottosezione_nome']"/></td>
+                                    <td><t t-out="s['totale_elaborati']"/></td>
+                                    <td><t t-out="'%.2f' % s['media_punteggi']"/></td>
+                                </tr>
+                            </t>
+                            <t t-if="not stats_sotto">
+                                <tr><td colspan="4">Nessun dato disponibile.</td></tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>
