@@ -1,0 +1,20 @@
+{
+    'name': 'Concorso Letterario',
+    'version': '18.0.1.0.0',
+    'summary': 'Gestione concorsi letterari: edizioni, sezioni, elaborati e classifiche',
+    'author': 'Infologistest',
+    'category': 'Custom',
+    'license': 'LGPL-3',
+    'depends': ['base', 'mail'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/ir_cron_data.xml',
+        'views/menu_views.xml',
+        'views/concorso_sezione_views.xml',
+        'views/concorso_elaborato_views.xml',
+        'views/concorso_edizione_views.xml',
+        'report/concorso_statistiche_report.xml',
+    ],
+    'installable': True,
+    'application': True,
+}
