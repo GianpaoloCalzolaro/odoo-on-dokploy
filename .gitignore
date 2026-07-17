@@ -1,2 +1,5 @@
 .env
 *.env
+
+# Local secrets
+api tocken.txt

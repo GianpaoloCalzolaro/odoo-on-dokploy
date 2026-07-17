@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(claude mcp *)",
+      "Bash(MSYS_NO_PATHCONV=1 claude mcp add dokploy -s user -e DOKPLOY_URL=http://76.13.133.214:3000 -e DOKPLOY_API_KEY=mcpzcbkXnQSBtMUKDmWnElUgpdYbeTUbinGSMurBQGwJeqjaXPAHQeGzZxAAWDjAszj -e DOKPLOY_ENABLED_TAGS=project,environment,github,gitProvider,application,compose,postgres,mounts,domain,deployment,docker -- cmd /c npx -y @dokploy/mcp)",
+      "Bash(export DOKPLOY_URL=http://76.13.133.214:3000 DOKPLOY_API_KEY=mcpzcbkXnQSBtMUKDmWnElUgpdYbeTUbinGSMurBQGwJeqjaXPAHQeGzZxAAWDjAszj DOKPLOY_ENABLED_TAGS=project,application)",
+      "Bash(timeout 60 npx -y @dokploy/mcp)",
+      "Bash(git check-ignore *)"
+    ]
+  }
+}
